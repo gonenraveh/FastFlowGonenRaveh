@@ -17,6 +17,9 @@ from FrEIA.modules.base import InvertibleModule
 HIDDEN_SIZE = 128
 
 class Identity(nn.Module):
+    ''' Gonen Raveh Says: this is a torch class
+    that acts as an identity module.
+    '''
     def __init__(self, return_value=None):
         super(Identity, self).__init__()
         self.return_value = return_value
@@ -26,7 +29,9 @@ class Identity(nn.Module):
 
 
 class FeatureExtractor:
-
+    ''' Gonen Raveh Says: this is a class that
+    acts as a listener to incoming features from torch model
+    '''
     def __init__(self, backbone):
         self.clear()
         self.bb = backbone
@@ -40,7 +45,9 @@ class FeatureExtractor:
         self.saved_feature = None
 
 class OwnGraphINN(InvertibleModule):
-
+    ''' Gonen Raveh Says: This is my invertible
+    graph that uses FrEIA
+    '''
     def __init__(self, node_list, force_tuple_output=False, verbose=False):
         # Gather lists of input, output and condition nodes
         in_nodes = [node_list[i] for i in range(len(node_list))
@@ -102,7 +109,7 @@ class OwnGraphINN(InvertibleModule):
                 intermediate_outputs: bool = False, x: None = None) \
             -> Tuple[Tuple[Tensor], Tensor]:
         """
-        Forward or backward computation of the whole net.
+        Forward or backward (reverse) computation of the whole net.
         """
         if x is not None:
             x_or_z = x
@@ -114,7 +121,9 @@ class OwnGraphINN(InvertibleModule):
         if torch.is_tensor(c):
             c = c,
 
-        jacobian = torch.zeros((x_or_z[0].shape[0], 1, *x_or_z[0].shape[2:])).to(x_or_z[0])
+        jshape = (x_or_z[0].shape[0], 1, *x_or_z[0].shape[2:])
+        print(f'The Jacobian Shape is {jshape}')
+        jacobian = torch.zeros(jshape).to(x_or_z[0])
         outs = {}
         jacobian_dict = {} if jac else None
 
@@ -226,6 +235,17 @@ class OwnGraphINN(InvertibleModule):
     def log_jacobian_numerical(self, x, c=None, rev=False, h=1e-04):
         """
         Approximate log Jacobian determinant via finite differences.
+        Gonen Raveh Says: we define J_num as a 3d shape like [64,784,768]
+        then we iterate each and every entry using "ndim_x_total"
+        and compute the gradient using a small offset value a+h, a-h
+        so, we estimate the gradient. After we compute this we
+        copy the output back to the J_num array using the command:
+        J_num[:, :, i] which means "put the values in all dim0, all dim1 and
+        dim2=i. Next, out of loop we compute for each batch element:
+        logdet_num[i] = ... the slogdet (same as numpy.linalg.slogdet)
+        which is the log of the absolute Square-Matrix-Determinant.
+        This determinant is mentioned in the paper in 3.3 2D Flow Model.
+        The paper says we should compute the Det(Jacobian).
         """
         if isinstance(x, (list, tuple)):
             batch_size = x[0].shape[0]
@@ -257,10 +277,11 @@ class OwnGraphINN(InvertibleModule):
                 y_lower = torch.cat(
                     [y_i.view(batch_size, -1) for y_i in y_lower], dim=1)
             J_num[:, :, i] = (y_upper - y_lower).view(batch_size, -1) / (2 * h)
+        #
         logdet_num = x[0].new_zeros(batch_size)
         for i in range(batch_size):
             logdet_num[i] = torch.slogdet(J_num[i])[1]
-
+        # return the logdet array with shape [batch_size]
         return logdet_num
 
 
