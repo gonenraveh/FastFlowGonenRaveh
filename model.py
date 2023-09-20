@@ -72,7 +72,10 @@ class OwnGraphINN(InvertibleModule):
 
         # Build the graph and tell nodes about their dimensions so that they can
         # build the modules
-        node_list = topological_order(node_list, in_nodes, out_nodes)
+        try:
+            node_list = topological_order(node_list, in_nodes, out_nodes)
+        except Exception as e:
+            node_list = topological_order(node_list, in_nodes, out_nodes, rev=False)
         global_in_shapes = [node.output_dims[0] for node in in_nodes]
         global_out_shapes = [node.input_dims[0] for node in out_nodes]
         global_cond_shapes = [node.output_dims[0] for node in condition_nodes]
