@@ -8,7 +8,11 @@ import FrEIA.modules as Fm
 import FrEIA.framework as Ff
 
 from FrEIA.framework import *
-from FrEIA.framework import topological_order
+try:
+	from FrEIA.framework import topological_order
+except Exception as e:
+    from FrEIA.framework.graph_inn.graph_inn import topological_order
+	
 from typing import List, Tuple, Iterable, Union, Optional
 from torch import Tensor
 from FrEIA.modules.base import InvertibleModule
