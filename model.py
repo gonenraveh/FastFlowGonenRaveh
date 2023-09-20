@@ -359,6 +359,13 @@ class FastFlowBlock(Fm.coupling_layers.GLOWCouplingBlock):
 
     def _coupling2(self, x2, u1, rev=False):
         a1 = self.subnet1(u1)
+        '''
+        Gonen Raveh Says: 
+        [a] s1 stands for "Split-1" from the paper: https://arxiv.org/pdf/2111.07677.pdf
+        [b] You can see in Paper Figure 2b that the data is split into two splits:
+        channel-wise. meaning C/2 channels go to split-1 and C/2 to split-2.
+        [c] @param rev - means operate in reverse mode.
+        '''
         s1, t1 = a1[:, :self.split_len2], a1[:, self.split_len2:]
         s1 = self.clamp * self.f_clamp(s1)
         j2 = s1
