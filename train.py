@@ -17,6 +17,10 @@ from utils import calc_loss, get_score
 torch.backends.cudnn.benchmark = True
 
 class Trainer:
+    ''' Gonen Raveh says: this code support two backbone
+    image feature extractors: cait with 48 blocks and image shape [3,448,448]
+    and deit.
+    '''
     FeatureShape = {
         "cait_m48_448": (768, 28, 28),
         "deit_base_distilled_patch16_384": (768, 24, 24)
